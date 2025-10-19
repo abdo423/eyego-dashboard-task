@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';
-import { loginSuccess } from '@/store/features/authSlice';
+import { loginSuccess, setLoading } from '@/store/features/authSlice';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { cn } from '@/lib/utils';
 import SuccessStatus from '@/components/SuccesStatus';
 import ErrorStatus from '@/components/ErrorStatus';
+import { useAppSelector } from '@/store/hooks';
+import { Loader } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -24,7 +26,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
   const [formData, setFormData] = useState<LoginData>({ email: '', password: '' });
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [generalStatus, setGeneralStatus] = useState({ success: '', error: '' });
-
+  const { loading } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -44,6 +46,8 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     }
 
     try {
+      dispatch(setLoading(true));
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,6 +62,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
       router.push('/dashboard');
     } catch (err: any) {
       setGeneralStatus({ success: '', error: err.message || 'Something went wrong' });
+      dispatch(setLoading(false));
     }
   };
 
@@ -79,6 +84,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
                   placeholder="m@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  disabled={loading}
                 />
                 {fieldErrors.email && <ErrorStatus errorMessage={fieldErrors.email} />}
               </Field>
@@ -90,6 +96,7 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                  disabled={loading}
                 />
                 {fieldErrors.password && <ErrorStatus errorMessage={fieldErrors.password} />}
               </Field>
@@ -98,12 +105,16 @@ const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
               {generalStatus.success && <SuccessStatus successMessage={generalStatus.success} />}
 
               <Field>
-                <Button type="submit" className="w-full">
-                  Login
+                <Button disabled={loading} type="submit" className="w-full">
+                  {loading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin mr-2" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
                 </Button>
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
