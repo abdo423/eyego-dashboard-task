@@ -155,7 +155,8 @@ const ExportFiles = () => {
                 },
                 margin: { top: 48, right: 14, bottom: 20, left: 14 },
                 didDrawPage: function(data) {
-                    const pageCount = (doc as any).internal.getNumberOfPages();
+                    const docInternal = doc as unknown as { internal: { getNumberOfPages: () => number } };
+                    const pageCount = docInternal.internal.getNumberOfPages();
                     doc.setFontSize(8);
                     doc.setTextColor(107, 114, 128);
                     doc.text(
