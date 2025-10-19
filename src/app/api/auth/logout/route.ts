@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const response = NextResponse.json({ message: 'Logout successful' }, { status: 200 });
 
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (error) {
+  } catch (err) {
     return NextResponse.json({ message: 'Logout failed' }, { status: 500 });
   }
 }
